@@ -6,60 +6,119 @@
     <title>Supplier App</title>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    
     <style>
         :root { --shopee-orange: #ee4d2d; }
         body { font-family: sans-serif; background-color: #f5f5f5; margin: 0; padding: 0; }
         
-        /* Bagian Atas (Top Bar) */
+        /* Loading Overlay */
+        #loader { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: white; display: flex; justify-content: center; align-items: center; z-index: 9999; 
+        }
+
+        /* Login Page */
+        #loginPage { padding: 30px; text-align: center; margin-top: 50px; }
+        .login-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .login-card h2 { color: var(--shopee-orange); margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .btn-login { width: 100%; padding: 12px; background: var(--shopee-orange); color: white; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+
+        /* Main Page */
         .top-bar { 
-            background-color: var(--shopee-orange); 
-            color: white; 
-            padding: 15px; 
-            font-weight: bold; 
-            position: fixed; 
-            top: 0; width: 100%; 
-            z-index: 100;
-            box-sizing: border-box;
-            display: flex;
-            justify-content: space-between;
+            background-color: var(--shopee-orange); color: white; padding: 15px; 
+            font-weight: bold; position: fixed; top: 0; width: 100%; 
+            z-index: 100; box-sizing: border-box; display: flex; justify-content: space-between;
         }
+        .container { padding: 70px 15px 100px 15px; }
+        .hidden { display: none !important; }
 
-        /* Container Produk */
-        .container { padding: 70px 10px 100px 10px; }
-        .product-card {
-            background: white; border-radius: 8px; padding: 10px;
-            margin-bottom: 10px; display: flex; gap: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .product-img { width: 80px; height: 80px; background: #eee; border-radius: 4px; object-fit: cover; }
-        .product-info h3 { margin: 0; font-size: 14px; color: #333; }
-        .product-info p { margin: 5px 0; font-size: 12px; color: #777; }
-        .price { color: var(--shopee-orange); font-weight: bold; font-size: 15px; }
-
-        /* Tombol Tambah (Bottom) */
         .fab {
             position: fixed; bottom: 20px; right: 20px;
-            background-color: var(--shopee-orange);
-            color: white; width: 60px; height: 60px;
+            background-color: var(--shopee-orange); color: white; width: 60px; height: 60px;
             border-radius: 50%; border: none; font-size: 30px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 99;
         }
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <span id="supplierName">Memuat...</span>
-        <span>Supplier App</span>
+    <div id="loader" class="hidden"><b>Memproses...</b></div>
+
+    <div id="loginPage">
+        <div class="login-card">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fe/Shopee.svg" width="80" style="margin-bottom:10px;">
+            <h2>Supplier Login</h2>
+            <input type="text" id="userInput" placeholder="Username">
+            <input type="password" id="passInput" placeholder="Password">
+            <button class="btn-login" onclick="prosesLogin()">MASUK</button>
+        </div>
     </div>
 
-    <div class="container" id="productList">
-        <p style="text-align:center; color:#999;">Belum ada produk.</p>
+    <div id="mainPage" class="hidden">
+        <div class="top-bar">
+            <span id="supplierName">Supplier Name</span>
+            <span onclick="logout()" style="font-size: 12px; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 4px;">Logout</span>
+        </div>
+
+        <div class="container" id="productList">
+            <p style="text-align:center; color:#999; margin-top:50px;">Memuat produk...</p>
+        </div>
+
+        <button class="fab" onclick="alert('Tahap berikutnya: Form Input')">+</button>
     </div>
 
-    <button class="fab" onclick="alert('Form tambah akan kita buat di tahap berikutnya')">+</button>
+<script>
+    // URL Web App GAS Anda
+    const GAS_URL = "https://script.google.com/macros/s/AKfycby_5wpUR444IYzeo-hKkbaZ5YjX53V_UE_Vxfe0o8XhlEJnuKLlIec7lVDYa7E_iKUI7w/exec";
 
+    // Cek apakah sudah pernah login
+    window.onload = function() {
+        const savedName = localStorage.getItem('supplier_name');
+        if (savedName) {
+            showMainPage(savedName);
+        }
+    };
+
+    async function prosesLogin() {
+        const user = document.getElementById('userInput').value;
+        const pass = document.getElementById('passInput').value;
+
+        if (!user || !pass) return alert("Isi username dan password");
+
+        toggleLoader(true);
+
+        try {
+            const response = await fetch(`${GAS_URL}?action=loginSupplier&user=${user}&pass=${pass}`);
+            const result = await response.json();
+
+            if (result.success) {
+                localStorage.setItem('supplier_name', result.nama_supplier);
+                showMainPage(result.nama_supplier);
+            } else {
+                alert("Login Gagal: " + result.message);
+            }
+        } catch (err) {
+            alert("Terjadi kesalahan koneksi");
+        } finally {
+            toggleLoader(false);
+        }
+    }
+
+    function showMainPage(name) {
+        document.getElementById('loginPage').classList.add('hidden');
+        document.getElementById('mainPage').classList.remove('hidden');
+        document.getElementById('supplierName').innerText = name;
+        // Nanti di sini kita panggil fungsi ambil produk
+    }
+
+    function logout() {
+        localStorage.clear();
+        location.reload();
+    }
+
+    function toggleLoader(show) {
+        document.getElementById('loader').classList.toggle('hidden', !show);
+    }
+</script>
 </body>
 </html>
