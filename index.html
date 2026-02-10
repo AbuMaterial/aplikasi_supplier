@@ -209,16 +209,60 @@
     }
 
     async function handleHapus() {
-        if(!confirm("Hapus produk ini?")) return;
-        toggleLoader(true);
-        try {
-            await fetch(`${GAS_URL}?action=hapusProdukSupplier&id=${document.getElementById('f_id').value}`);
-            alert("Produk Dihapus");
+    if(!confirm("Hapus produk dan foto secara permanen?")) return;
+    
+    const idProduk = document.getElementById('f_id').value;
+    const imgUrl = document.getElementById('f_img_url').value;
+    
+    toggleLoader(true);
+    try {
+        // --- PROSES 1: Hapus Foto di GitHub (Jika ada) ---
+        if (imgUrl && imgUrl.includes("cdn.jsdelivr.net")) {
+            // Ambil nama file dari URL
+            const urlParts = imgUrl.split('/');
+            const fileName = urlParts[urlParts.length - 1];
+            const githubApiUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_PATH}/${fileName}`;
+            
+            // Ambil SHA file untuk syarat penghapusan
+            const getResp = await fetch(githubApiUrl, {
+                headers: { "Authorization": `token ${GITHUB_TOKEN}` }
+            });
+            
+            if (getResp.ok) {
+                const fileData = await getResp.json();
+                const sha = fileData.sha;
+                
+                // Eksekusi Hapus di GitHub
+                await fetch(githubApiUrl, {
+                    method: "DELETE",
+                    headers: { "Authorization": `token ${GITHUB_TOKEN}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: "Menghapus foto produk",
+                        sha: sha
+                    })
+                });
+                console.log("Foto di GitHub berhasil dihapus");
+            }
+        }
+
+        // --- PROSES 2: Hapus Baris di Google Sheets ---
+        const resp = await fetch(`${GAS_URL}?action=hapusProdukSupplier&id=${idProduk}`);
+        const res = await resp.json();
+        
+        if (res.success) {
+            alert("Produk dan Foto Berhasil Dihapus!");
             tutupForm();
-            muatProduk();
-        } catch(e) { alert("Gagal Hapus"); }
-        finally { toggleLoader(false); }
+            muatProduk(); // Refresh tampilan
+        } else {
+            alert("Gagal menghapus di Sheets: " + res.message);
+        }
+    } catch(e) {
+        alert("Terjadi kesalahan sistem saat menghapus.");
+        console.error(e);
+    } finally {
+        toggleLoader(false);
     }
+}
 
     function bukaForm(it = null) {
         document.getElementById('productModal').style.display = 'block';
