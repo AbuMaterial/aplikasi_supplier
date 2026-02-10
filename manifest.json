@@ -1,0 +1,21 @@
+{
+  "name": "Abu Material Supplier",
+  "short_name": "SupplierApp",
+  "description": "Aplikasi Kanvasing Supplier Abu Material",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ee4d2d",
+  "icons": [
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/f/fe/Shopee.svg",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/f/fe/Shopee.svg",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
