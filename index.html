@@ -3,169 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Supplier App | Shopee Look</title>
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Supplier App | Abu Material</title>
     <style>
         :root { --shopee-orange: #ee4d2d; }
-        body { font-family: sans-serif; background-color: #f5f5f5; margin: 0; padding: 0; }
-        
-        /* Loading Overlay */
-        #loader { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(255,255,255,0.9); display: flex; justify-content: center; 
-            align-items: center; z-index: 9999; 
-        }
-
-        /* Login Page */
-        #loginPage { padding: 30px; text-align: center; margin-top: 50px; }
-        .login-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .login-card h2 { color: var(--shopee-orange); margin-bottom: 20px; font-size: 20px; }
-        input { 
-            width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; 
-            border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none;
-        }
-        input:focus { border-color: var(--shopee-orange); }
-        .btn-login { 
-            width: 100%; padding: 12px; background: var(--shopee-orange); color: white; 
-            border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; 
-            cursor: pointer; font-size: 16px; 
-        }
-
-        /* Main Page */
-        .top-bar { 
-            background-color: var(--shopee-orange); color: white; padding: 15px; 
-            font-weight: bold; position: fixed; top: 0; width: 100%; 
-            z-index: 100; box-sizing: border-box; display: flex; justify-content: space-between;
-            align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .container { padding: 75px 15px 100px 15px; }
+        body { font-family: sans-serif; background-color: #f5f5f5; margin: 0; padding: 0; color: #333; }
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: flex; justify-content: center; align-items: center; z-index: 10001; }
         .hidden { display: none !important; }
 
-        /* Floating Action Button */
-        .fab {
-            position: fixed; bottom: 25px; right: 25px;
-            background-color: var(--shopee-orange); color: white; width: 60px; height: 60px;
-            border-radius: 50%; border: none; font-size: 35px;
-            box-shadow: 0 4px 15px rgba(238, 77, 45, 0.4); z-index: 99;
-            cursor: pointer; display: flex; justify-content: center; align-items: center;
-        }
+        /* Top Bar */
+        .top-bar { background-color: var(--shopee-orange); color: white; padding: 15px; font-weight: bold; position: fixed; top: 0; width: 100%; z-index: 100; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; }
 
-        .logout-btn {
-            font-size: 11px; background: rgba(0,0,0,0.15); padding: 5px 10px; 
-            border-radius: 20px; cursor: pointer; text-transform: uppercase;
-        }
+        /* Container & Grid */
+        .container { padding: 75px 10px 100px 10px; }
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .product-card { background: white; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
+        .product-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #eee; }
+        .product-info { padding: 8px; }
+        .product-name { font-size: 13px; height: 34px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 5px; font-weight: bold; }
+        .product-price { color: var(--shopee-orange); font-size: 15px; font-weight: bold; }
+        
+        /* Modal Style */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; overflow-y: auto; display: none; }
+        .modal-header { padding: 15px; background: white; border-bottom: 1px solid #eee; display: flex; align-items: center; font-weight: bold; position: sticky; top: 0; }
+        .modal-body { padding: 20px; }
+        label { font-size: 12px; color: #888; display: block; margin-top: 10px; }
+        input, select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; }
+        
+        .btn-save { background: var(--shopee-orange); color: white; border: none; width: 100%; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: 20px; }
+        .btn-delete { background: #fff; color: #ff4d4d; border: 1px solid #ff4d4d; width: 100%; padding: 10px; border-radius: 8px; margin-top: 10px; font-weight: bold; }
+        
+        #previewImg { width: 100%; border-radius: 8px; margin-top: 10px; display: none; object-fit: contain; max-height: 250px; background: #f0f0f0; }
+        .fab { position: fixed; bottom: 25px; right: 25px; background-color: var(--shopee-orange); color: white; width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 35px; box-shadow: 0 4px 15px rgba(238, 77, 45, 0.4); z-index: 99; }
     </style>
 </head>
 <body>
 
-    <div id="loader" class="hidden">
-        <div style="text-align:center;">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fe/Shopee.svg" width="50" style="animation: pulse 1s infinite;">
-            <p style="color:var(--shopee-orange); font-weight:bold; margin-top:10px;">Memproses...</p>
-        </div>
-    </div>
+    <div id="loader" class="hidden"><b>Memproses...</b></div>
 
-    <div id="loginPage">
-        <div class="login-card">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fe/Shopee.svg" width="80" style="margin-bottom:10px;">
-            <h2>Supplier Login</h2>
+    <div id="loginPage" style="padding:50px 30px; text-align:center;">
+        <div style="background:white; padding:25px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fe/Shopee.svg" width="80">
+            <h2 style="color:var(--shopee-orange)">Supplier Login</h2>
             <input type="text" id="userInput" placeholder="Username">
             <input type="password" id="passInput" placeholder="Password">
-            <button class="btn-login" onclick="prosesLogin()">MASUK</button>
+            <button onclick="prosesLogin()" style="background:var(--shopee-orange); color:white; border:none; width:100%; padding:12px; border-radius:8px; font-weight:bold; margin-top:10px;">MASUK</button>
         </div>
-        <p style="font-size:12px; color:#999; margin-top:20px;">Khusus mitra supplier resmi</p>
     </div>
 
     <div id="mainPage" class="hidden">
         <div class="top-bar">
-            <div>
-                <div style="font-size:10px; opacity:0.8; font-weight:normal;">Mitra Supplier:</div>
-                <span id="supplierName">Nama Supplier</span>
-            </div>
-            <span class="logout-btn" onclick="logout()">Keluar</span>
+            <div><div style="font-size:10px; font-weight:normal;">Supplier:</div><span id="supplierName">...</span></div>
+            <span onclick="logout()" style="font-size:11px; border:1px solid white; padding:3px 8px; border-radius:4px;">KELUAR</span>
         </div>
+        <div class="container"><div id="productList" class="product-grid"></div></div>
+        <button class="fab" onclick="bukaForm()">+</button>
+    </div>
 
-        <div class="container" id="productList">
-            <p style="text-align:center; color:#999; margin-top:50px;">Memuat daftar produk Anda...</p>
+    <div id="productModal" class="modal">
+        <div class="modal-header">
+            <span onclick="tutupForm()" style="margin-right:20px; font-size:24px;">✕</span>
+            <span id="modalTitle">Tambah Produk</span>
         </div>
+        <div class="modal-body">
+            <input type="hidden" id="f_id">
+            <label>Ambil Foto Produk</label>
+            <input type="file" id="f_file" accept="image/*" capture="environment" onchange="previewFile()">
+            <img id="previewImg" src="">
+            <input type="hidden" id="f_img_url">
 
-        <button class="fab" onclick="alert('Tahap berikutnya: Kita akan membuat Form Input Produk')">+</button>
+            <label>Nama Produk</label>
+            <input type="text" id="f_nama" placeholder="Contoh: Semen">
+            <label>Merk</label>
+            <input type="text" id="f_merk" placeholder="Contoh: Gresik">
+            <label>Ukuran / Isi</label>
+            <input type="text" id="f_ukuran" placeholder="Contoh: 40kg">
+            <label>Satuan</label>
+            <select id="f_satuan">
+                <option value="PCS">PCS</option><option value="SAK">SAK</option><option value="DUS">DUS</option><option value="BATANG">BATANG</option>
+            </select>
+            <label>Harga Modal (Rp)</label>
+            <input type="number" id="f_harga" placeholder="0">
+
+            <button class="btn-save" onclick="handleSimpan()">SIMPAN DATA</button>
+            <button id="btnHapus" class="btn-delete hidden" onclick="handleHapus()">HAPUS PRODUK</button>
+        </div>
     </div>
 
 <script>
-    // URL Web App Google Apps Script Anda
-    const GAS_URL = "https://script.google.com/macros/s/AKfycby_5wpUR444IYzeo-hKkbaZ5YjX53V_UE_Vxfe0o8XhlEJnuKLlIec7lVDYa7E_iKUI7w/exec";
+    // --- KONFIGURASI ---
+    const GAS_URL = "https://script.google.com/macros/s/AKfycby_5wpUR444IYzeo-hKkbaZ5YjX53V_UE_Vxfe0o8XhlEJnuKLlIec7lVDYa7E_iKUI7w/exec"; // GANTI DENGAN URL GAS ANDA
+    const GITHUB_TOKEN = "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"; 
+    const GITHUB_REPO = "AbuMaterial/aplikasi_supplier"; // WAJIB GANTI: contoh "abumaterial/app-supplier"
+    const GITHUB_PATH = "foto_produk";
 
-    // Cek status login saat aplikasi dibuka
     window.onload = function() {
-        const savedName = localStorage.getItem('supplier_name');
-        if (savedName) {
-            showMainPage(savedName);
-        }
+        const name = localStorage.getItem('supplier_name');
+        if (name) showMainPage(name);
     };
 
     async function prosesLogin() {
         const user = document.getElementById('userInput').value;
         const pass = document.getElementById('passInput').value;
-
-        if (!user || !pass) return alert("Silakan isi Username dan Password");
-
+        if(!user || !pass) return alert("Lengkapi data!");
         toggleLoader(true);
-
         try {
-            // Memanggil API Login di Google Sheets
-            const response = await fetch(`${GAS_URL}?action=loginSupplier&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`);
-            const result = await response.json();
-
-            if (result.success) {
-                // VALIDASI ROLE: Hanya boleh role 'SUPPLIER'
-                const role = result.role ? result.role.toUpperCase() : "";
-                
-                if (role === "SUPPLIER") {
-                    localStorage.setItem('supplier_name', result.nama_supplier);
-                    localStorage.setItem('user_role', role);
-                    showMainPage(result.nama_supplier);
-                } else {
-                    alert("Akses Ditolak! Akun Anda terdeteksi sebagai " + role + ". Aplikasi ini hanya untuk mitra Supplier.");
-                }
-            } else {
-                alert("Gagal Masuk: " + result.message);
-            }
-        } catch (err) {
-            console.error(err);
-            alert("Terjadi kesalahan koneksi. Pastikan internet stabil.");
-        } finally {
-            toggleLoader(false);
-        }
+            const resp = await fetch(`${GAS_URL}?action=loginSupplier&user=${user}&pass=${pass}`);
+            const res = await resp.json();
+            if (res.success) {
+                localStorage.setItem('supplier_name', res.nama_supplier);
+                showMainPage(res.nama_supplier);
+            } else alert(res.message);
+        } catch(e) { alert("Login Gagal"); }
+        finally { toggleLoader(false); }
     }
 
     function showMainPage(name) {
         document.getElementById('loginPage').classList.add('hidden');
         document.getElementById('mainPage').classList.remove('hidden');
         document.getElementById('supplierName').innerText = name;
-        // Nanti di Tahap 3: Fungsi ambilProduk() akan dipanggil di sini
+        muatProduk();
     }
 
-    function logout() {
-        if(confirm("Apakah Anda ingin keluar?")) {
-            localStorage.clear();
-            location.reload();
+    async function muatProduk() {
+        const supplier = localStorage.getItem('supplier_name');
+        const listDiv = document.getElementById('productList');
+        listDiv.innerHTML = "Memuat...";
+        try {
+            const resp = await fetch(`${GAS_URL}?action=getProdukSupplier&supplier=${encodeURIComponent(supplier)}`);
+            let data = await resp.json();
+            data.sort((a,b) => a[1].localeCompare(b[1]));
+            listDiv.innerHTML = "";
+            data.forEach(it => {
+                const card = document.createElement('div');
+                card.className = "product-card";
+                card.onclick = () => bukaForm(it);
+                card.innerHTML = `
+                    <img src="${it[4] || 'https://via.placeholder.com/150'}" class="product-img">
+                    <div class="product-info">
+                        <div class="product-name">${it[1]}</div>
+                        <div class="product-price">Rp ${Number(it[5]).toLocaleString('id-ID')}</div>
+                    </div>`;
+                listDiv.appendChild(card);
+            });
+        } catch(e) { listDiv.innerHTML = "Belum ada produk."; }
+    }
+
+    function previewFile() {
+        const file = document.getElementById('f_file').files[0];
+        const preview = document.getElementById('previewImg');
+        const reader = new FileReader();
+        reader.onloadend = () => { preview.src = reader.result; preview.style.display = 'block'; };
+        if (file) reader.readAsDataURL(file);
+    }
+
+    async function uploadKeGithub(file) {
+        const fileName = `img_${Date.now()}.jpg`;
+        const reader = new FileReader();
+        return new Promise((resolve, reject) => {
+            reader.onload = async () => {
+                const content = reader.result.split(',')[1];
+                const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_PATH}/${fileName}`;
+                try {
+                    const resp = await fetch(url, {
+                        method: "PUT",
+                        headers: { "Authorization": `token ${GITHUB_TOKEN}`, "Content-Type": "application/json" },
+                        body: JSON.stringify({ message: "Upload foto produk", content: content })
+                    });
+                    if(!resp.ok) throw new Error("Gagal upload ke GitHub");
+                    resolve(`https://cdn.jsdelivr.net/gh/${GITHUB_REPO}@main/${GITHUB_PATH}/${fileName}`);
+                } catch(e) { reject(e); }
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function handleSimpan() {
+        const fileInput = document.getElementById('f_file');
+        const namaInput = document.getElementById('f_nama').value;
+        let imgUrl = document.getElementById('f_img_url').value;
+        
+        if(!namaInput) return alert("Nama produk wajib diisi!");
+        
+        toggleLoader(true);
+        try {
+            if (fileInput.files.length > 0) {
+                imgUrl = await uploadKeGithub(fileInput.files[0]);
+            }
+            
+            const payload = {
+                fungsi: "saveProduk",
+                id: document.getElementById('f_id').value,
+                nama_gabungan: `${namaInput} ${document.getElementById('f_merk').value} ${document.getElementById('f_ukuran').value}`.trim(),
+                supplier: localStorage.getItem('supplier_name'),
+                satuan: document.getElementById('f_satuan').value,
+                harga_modal: document.getElementById('f_harga').value,
+                img: imgUrl
+            };
+
+            await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
+            alert("Berhasil Disimpan!");
+            tutupForm();
+            muatProduk();
+        } catch(e) { alert("Error: " + e.message); }
+        finally { toggleLoader(false); }
+    }
+
+    async function handleHapus() {
+        if(!confirm("Hapus produk ini?")) return;
+        toggleLoader(true);
+        try {
+            await fetch(`${GAS_URL}?action=hapusProdukSupplier&id=${document.getElementById('f_id').value}`);
+            alert("Produk Dihapus");
+            tutupForm();
+            muatProduk();
+        } catch(e) { alert("Gagal Hapus"); }
+        finally { toggleLoader(false); }
+    }
+
+    function bukaForm(it = null) {
+        document.getElementById('productModal').style.display = 'block';
+        document.getElementById('f_file').value = "";
+        if (it) {
+            document.getElementById('modalTitle').innerText = "Edit Produk";
+            document.getElementById('f_id').value = it[0];
+            document.getElementById('f_nama').value = it[1];
+            document.getElementById('f_merk').value = ""; // dikosongkan karena sudah tergabung di nama
+            document.getElementById('f_ukuran').value = "";
+            document.getElementById('f_satuan').value = it[3];
+            document.getElementById('f_img_url').value = it[4];
+            document.getElementById('previewImg').src = it[4] || "";
+            document.getElementById('previewImg').style.display = it[4] ? 'block' : 'none';
+            document.getElementById('f_harga').value = it[5];
+            document.getElementById('btnHapus').classList.remove('hidden');
+        } else {
+            document.getElementById('modalTitle').innerText = "Tambah Produk";
+            document.getElementById('f_id').value = "";
+            document.getElementById('f_nama').value = "";
+            document.getElementById('f_merk').value = "";
+            document.getElementById('f_ukuran').value = "";
+            document.getElementById('f_img_url').value = "";
+            document.getElementById('previewImg').style.display = 'none';
+            document.getElementById('f_harga').value = "";
+            document.getElementById('btnHapus').classList.add('hidden');
         }
     }
 
-    function toggleLoader(show) {
-        document.getElementById('loader').classList.toggle('hidden', !show);
-    }
+    function tutupForm() { document.getElementById('productModal').style.display = 'none'; }
+    function logout() { localStorage.clear(); location.reload(); }
+    function toggleLoader(s) { document.getElementById('loader').classList.toggle('hidden', !s); }
 </script>
-
-<style>
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-    }
-</style>
-
 </body>
 </html>
