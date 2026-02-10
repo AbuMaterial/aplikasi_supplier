@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Supplier App</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <style>
+        :root { --shopee-orange: #ee4d2d; }
+        body { font-family: sans-serif; background-color: #f5f5f5; margin: 0; padding: 0; }
+        
+        /* Bagian Atas (Top Bar) */
+        .top-bar { 
+            background-color: var(--shopee-orange); 
+            color: white; 
+            padding: 15px; 
+            font-weight: bold; 
+            position: fixed; 
+            top: 0; width: 100%; 
+            z-index: 100;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Container Produk */
+        .container { padding: 70px 10px 100px 10px; }
+        .product-card {
+            background: white; border-radius: 8px; padding: 10px;
+            margin-bottom: 10px; display: flex; gap: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .product-img { width: 80px; height: 80px; background: #eee; border-radius: 4px; object-fit: cover; }
+        .product-info h3 { margin: 0; font-size: 14px; color: #333; }
+        .product-info p { margin: 5px 0; font-size: 12px; color: #777; }
+        .price { color: var(--shopee-orange); font-weight: bold; font-size: 15px; }
+
+        /* Tombol Tambah (Bottom) */
+        .fab {
+            position: fixed; bottom: 20px; right: 20px;
+            background-color: var(--shopee-orange);
+            color: white; width: 60px; height: 60px;
+            border-radius: 50%; border: none; font-size: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <span id="supplierName">Memuat...</span>
+        <span>Supplier App</span>
+    </div>
+
+    <div class="container" id="productList">
+        <p style="text-align:center; color:#999;">Belum ada produk.</p>
+    </div>
+
+    <button class="fab" onclick="alert('Form tambah akan kita buat di tahap berikutnya')">+</button>
+
+</body>
+</html>
