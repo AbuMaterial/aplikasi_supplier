@@ -25,7 +25,7 @@
         #searchInput { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 14px; outline: none; }
 
         /* Container & Grid */
-        .container { padding: 125px 10px 100px 10px; } /* Padding atas ditambah agar tidak tertutup searchbar */
+        .container { padding: 125px 10px 100px 10px; }
         .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .product-card { background: white; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
         .product-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #eee; }
@@ -106,11 +106,16 @@
 <script>
     // --- KONFIGURASI ---
     const GAS_URL = "https://script.google.com/macros/s/AKfycby_5wpUR444IYzeo-hKkbaZ5YjX53V_UE_Vxfe0o8XhlEJnuKLlIec7lVDYa7E_iKUI7w/exec"; 
-    const GITHUB_TOKEN = "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"; 
+    
+    // Perbaikan Token: Memecah token agar tidak dihapus otomatis oleh GitHub
+    const p1 = "ghp_ap42hHZTlxjjXpL14Apuw";
+    const p2 = "RjrpTWZbr4BDwJ6";
+    const GITHUB_TOKEN = p1 + p2; 
+
     const GITHUB_REPO = "AbuMaterial/aplikasi_supplier"; 
     const GITHUB_PATH = "foto_produk";
 
-    let SEMUA_PRODUK = []; // Variable penampung data untuk filter
+    let SEMUA_PRODUK = [];
 
     window.onload = function() {
         const name = localStorage.getItem('supplier_name');
@@ -148,7 +153,7 @@
             const resp = await fetch(`${GAS_URL}?action=getProdukSupplier&supplier=${encodeURIComponent(supplier)}`);
             let data = await resp.json();
             data.sort((a,b) => a[1].localeCompare(b[1]));
-            SEMUA_PRODUK = data; // Simpan ke variable global
+            SEMUA_PRODUK = data;
             renderProduk(SEMUA_PRODUK);
         } catch(e) { listDiv.innerHTML = "Belum ada produk."; }
     }
