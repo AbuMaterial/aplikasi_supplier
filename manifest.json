@@ -2,18 +2,18 @@
   "name": "ABU MATERIAL TOKO",
   "short_name": "AMSupplier",
   "description": "Aplikasi Pemesanan Material Abu Toko",
-  "start_url": "index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#075E54",
   "icons": [
     {
-      "src": "https://github.com/AbuMaterial/aplikasi_supplier/blob/main/Gemini_Generated_Image_qi5nyuqi5nyuqi5n.png",
+      "src": "https://raw.githubusercontent.com/AbuMaterial/aplikasi_supplier/main/Gemini_Generated_Image_qi5nyuqi5nyuqi5n.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://github.com/AbuMaterial/aplikasi_supplier/blob/main/Gemini_Generated_Image_qi5nyuqi5nyuqi5n.png",
+      "src": "https://raw.githubusercontent.com/AbuMaterial/aplikasi_supplier/main/Gemini_Generated_Image_qi5nyuqi5nyuqi5n.png",
       "sizes": "512x512",
       "type": "image/png"
     }
