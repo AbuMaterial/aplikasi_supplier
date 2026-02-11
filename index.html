@@ -20,8 +20,12 @@
         /* Top Bar */
         .top-bar { background-color: var(--shopee-orange); color: white; padding: 15px; font-weight: bold; position: fixed; top: 0; width: 100%; z-index: 100; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; }
 
+        /* Search Bar Area */
+        .search-container { background: white; padding: 10px; position: fixed; top: 55px; width: 100%; z-index: 99; box-sizing: border-box; border-bottom: 1px solid #ddd; }
+        #searchInput { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 14px; outline: none; }
+
         /* Container & Grid */
-        .container { padding: 75px 10px 100px 10px; }
+        .container { padding: 125px 10px 100px 10px; } /* Padding atas ditambah agar tidak tertutup searchbar */
         .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .product-card { background: white; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
         .product-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #eee; }
@@ -62,6 +66,9 @@
             <div><div style="font-size:10px; font-weight:normal;">Supplier:</div><span id="supplierName">...</span></div>
             <span onclick="logout()" style="font-size:11px; border:1px solid white; padding:3px 8px; border-radius:4px;">KELUAR</span>
         </div>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Cari nama produk atau merk..." onkeyup="filterProduk()">
+        </div>
         <div class="container"><div id="productList" class="product-grid"></div></div>
         <button class="fab" onclick="bukaForm()">+</button>
     </div>
@@ -98,10 +105,12 @@
 
 <script>
     // --- KONFIGURASI ---
-    const GAS_URL = "https://script.google.com/macros/s/AKfycby_5wpUR444IYzeo-hKkbaZ5YjX53V_UE_Vxfe0o8XhlEJnuKLlIec7lVDYa7E_iKUI7w/exec"; // GANTI DENGAN URL GAS ANDA
+    const GAS_URL = "https://script.google.com/macros/s/AKfycby_5wpUR444IYzeo-hKkbaZ5YjX53V_UE_Vxfe0o8XhlEJnuKLlIec7lVDYa7E_iKUI7w/exec"; 
     const GITHUB_TOKEN = "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"; 
-    const GITHUB_REPO = "AbuMaterial/aplikasi_supplier"; // WAJIB GANTI: contoh "abumaterial/app-supplier"
+    const GITHUB_REPO = "AbuMaterial/aplikasi_supplier"; 
     const GITHUB_PATH = "foto_produk";
+
+    let SEMUA_PRODUK = []; // Variable penampung data untuk filter
 
     window.onload = function() {
         const name = localStorage.getItem('supplier_name');
@@ -139,20 +148,34 @@
             const resp = await fetch(`${GAS_URL}?action=getProdukSupplier&supplier=${encodeURIComponent(supplier)}`);
             let data = await resp.json();
             data.sort((a,b) => a[1].localeCompare(b[1]));
-            listDiv.innerHTML = "";
-            data.forEach(it => {
-                const card = document.createElement('div');
-                card.className = "product-card";
-                card.onclick = () => bukaForm(it);
-                card.innerHTML = `
-                    <img src="${it[4] || 'https://via.placeholder.com/150'}" class="product-img">
-                    <div class="product-info">
-                        <div class="product-name">${it[1]}</div>
-                        <div class="product-price">Rp ${Number(it[5]).toLocaleString('id-ID')}</div>
-                    </div>`;
-                listDiv.appendChild(card);
-            });
+            SEMUA_PRODUK = data; // Simpan ke variable global
+            renderProduk(SEMUA_PRODUK);
         } catch(e) { listDiv.innerHTML = "Belum ada produk."; }
+    }
+
+    function renderProduk(data) {
+        const listDiv = document.getElementById('productList');
+        listDiv.innerHTML = "";
+        data.forEach(it => {
+            const card = document.createElement('div');
+            card.className = "product-card";
+            card.onclick = () => bukaForm(it);
+            card.innerHTML = `
+                <img src="${it[4] || 'https://via.placeholder.com/150'}" class="product-img">
+                <div class="product-info">
+                    <div class="product-name">${it[1]}</div>
+                    <div class="product-price">Rp ${Number(it[5]).toLocaleString('id-ID')}</div>
+                </div>`;
+            listDiv.appendChild(card);
+        });
+    }
+
+    function filterProduk() {
+        const keyword = document.getElementById('searchInput').value.toLowerCase();
+        const hasilFilter = SEMUA_PRODUK.filter(it => {
+            return it[1].toLowerCase().includes(keyword);
+        });
+        renderProduk(hasilFilter);
     }
 
     function previewFile() {
@@ -188,15 +211,12 @@
         const fileInput = document.getElementById('f_file');
         const namaInput = document.getElementById('f_nama').value;
         let imgUrl = document.getElementById('f_img_url').value;
-        
         if(!namaInput) return alert("Nama produk wajib diisi!");
-        
         toggleLoader(true);
         try {
             if (fileInput.files.length > 0) {
                 imgUrl = await uploadKeGithub(fileInput.files[0]);
             }
-            
             const payload = {
                 fungsi: "saveProduk",
                 id: document.getElementById('f_id').value,
@@ -206,7 +226,6 @@
                 harga_modal: document.getElementById('f_harga').value,
                 img: imgUrl
             };
-
             await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
             alert("Berhasil Disimpan!");
             tutupForm();
@@ -216,57 +235,35 @@
     }
 
     async function handleHapus() {
-    if(!confirm("Hapus produk dan foto secara permanen?")) return;
-    
-    const idProduk = document.getElementById('f_id').value;
-    const imgUrl = document.getElementById('f_img_url').value;
-    
-    toggleLoader(true);
-    try {
-        // --- PROSES 1: Hapus Foto di GitHub (Jika ada) ---
-        if (imgUrl && imgUrl.includes("cdn.jsdelivr.net")) {
-            const urlParts = imgUrl.split('/');
-            const fileName = urlParts[urlParts.length - 1];
-            const githubApiUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_PATH}/${fileName}`;
-            
-            const getResp = await fetch(githubApiUrl, {
-                headers: { "Authorization": `token ${GITHUB_TOKEN}` }
-            });
-            
-            if (getResp.ok) {
-                const fileData = await getResp.json();
-                const sha = fileData.sha;
-                
-                await fetch(githubApiUrl, {
-                    method: "DELETE",
-                    headers: { "Authorization": `token ${GITHUB_TOKEN}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        message: "Menghapus foto produk",
-                        sha: sha
-                    })
-                });
-                console.log("Foto di GitHub berhasil dihapus");
+        if(!confirm("Hapus produk dan foto secara permanen?")) return;
+        const idProduk = document.getElementById('f_id').value;
+        const imgUrl = document.getElementById('f_img_url').value;
+        toggleLoader(true);
+        try {
+            if (imgUrl && imgUrl.includes("cdn.jsdelivr.net")) {
+                const urlParts = imgUrl.split('/');
+                const fileName = urlParts[urlParts.length - 1];
+                const githubApiUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_PATH}/${fileName}`;
+                const getResp = await fetch(githubApiUrl, { headers: { "Authorization": `token ${GITHUB_TOKEN}` } });
+                if (getResp.ok) {
+                    const fileData = await getResp.json();
+                    await fetch(githubApiUrl, {
+                        method: "DELETE",
+                        headers: { "Authorization": `token ${GITHUB_TOKEN}`, "Content-Type": "application/json" },
+                        body: JSON.stringify({ message: "Menghapus foto produk", sha: fileData.sha })
+                    });
+                }
             }
-        }
-
-        // --- PROSES 2: Hapus Baris di Google Sheets ---
-        const resp = await fetch(`${GAS_URL}?action=hapusProdukSupplier&id=${idProduk}`);
-        const res = await resp.json();
-        
-        if (res.success) {
-            alert("Produk dan Foto Berhasil Dihapus!");
-            tutupForm();
-            muatProduk(); 
-        } else {
-            alert("Gagal menghapus di Sheets: " + res.message);
-        }
-    } catch(e) {
-        alert("Terjadi kesalahan sistem saat menghapus.");
-        console.error(e);
-    } finally {
-        toggleLoader(false);
+            const resp = await fetch(`${GAS_URL}?action=hapusProdukSupplier&id=${idProduk}`);
+            const res = await resp.json();
+            if (res.success) {
+                alert("Produk dan Foto Berhasil Dihapus!");
+                tutupForm();
+                muatProduk(); 
+            } else { alert("Gagal menghapus di Sheets: " + res.message); }
+        } catch(e) { alert("Terjadi kesalahan sistem saat menghapus."); } 
+        finally { toggleLoader(false); }
     }
-}
 
     function bukaForm(it = null) {
         document.getElementById('productModal').style.display = 'block';
@@ -300,7 +297,6 @@
     function logout() { localStorage.clear(); location.reload(); }
     function toggleLoader(s) { document.getElementById('loader').classList.toggle('hidden', !s); }
 
-    // Register Service Worker untuk PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
