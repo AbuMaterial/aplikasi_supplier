@@ -2,7 +2,7 @@
   "name": "ABU MATERIAL TOKO",
   "short_name": "AMSupplier",
   "description": "Aplikasi Pemesanan Material Abu Toko",
-  "start_url": "/",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#075E54",
